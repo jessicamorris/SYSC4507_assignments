@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage[scientific-notation=true, binary-units=true]{siunitx}
+\sisetup{per-mode=fraction}%
+\sisetup{scientific-notation=false}%
+
+\title{SYSC 4507 Assignment 1}
+\date{February 7th, 2017}
+\author{Jessica Morris \(100882290\)}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+
+\item
+\begin{enumerate}
+\item
+$$ \text{\# of instructions} = \frac{ \text{execution time} }{ \text{CPI} \times \text{seconds/cycle} } $$
+$$ \text{\# of instructions} = \frac{ \SI{1.8}{\second} }{ 1.6 \times \frac{1}{ \SI{900}{\mega\hertz} }} $$
+$$ \text{\# of instructions} = 1012500000 $$
+
+\item
+$$ \text{MIPS} = \frac{1012500000 \text{ instructions}}{\SI{1.8}{\second}} $$
+$$ \text{MIPS} = 562500000 $$
+
+\item Using a processor that has a faster MIPS rating should result in a positive percent speedup. Since a higher MIPS-rated processor will execute the program faster, $ T_{new} < T_{old} $, resulting in $ \frac{T_{old} - T_{new}}{T_{new}} $ being positive.
+
+\end{enumerate}
+
+\item Loop 1 executes $ n $ times. Loop 2 executes $ n $ times, loop 3 will execute $ n \times (n - j)  $ times, and loop 4 will execute $ n \times (n - j) \times n $ times. The expression for the algorithm's run-time is then:
+
+$$ n + n^3 -jn^2 $$
+
+The highest-order variable in this expression is $ n^3 $, so this code fragment is of order $ O(n^3) $.
+
+\end{enumerate}
+\end{document}

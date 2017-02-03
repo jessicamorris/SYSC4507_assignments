@@ -1,0 +1,5 @@
+# Exclude unwanted TeX files
+
+*.aux
+*.log
+*.dvi
