@@ -1,0 +1,45 @@
+\documentclass{article}
+
+\usepackage{bytefield}
+\usepackage[scientific-notation=true, binary-units=true]{siunitx}
+\sisetup{per-mode=fraction}%
+\sisetup{scientific-notation=false}%
+
+\title{SYSC 4507 Assignment 2}
+\date{February 13th, 2017}
+\author{Jessica Morris \(100882290\)}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+
+\item
+\begin{enumerate}
+\item If a set can hold up to 8 blocks of memory, then this cache is 8-way set associative.
+
+\item $ \SI{4}{\giga\byte} $ of memory means addresses are 32 bits long ($ \SI{4}{\giga\byte} = 2^{32} $). Each block contains $ 16 = 2^4 $ bytes, so 4 bits are needed to specify the offset, and 28 bits in total are used for the tag \& set. It is given that the tag size is 17 bits, so the number of set bits is $ 28 - 17 = 11 $.
+\\
+
+\begin{bytefield}{32}
+\bitheader{0, 16, 17, 27, 28, 31} \\
+\bitbox{17}{Tag (17 bits)} & \bitbox{11}{Set (11 bits)} & \bitbox{4}{\tiny Offset (4 bits)}
+\end{bytefield}
+
+\item The size of this cache is given by the number of lines in the cache, times the size of a block:
+$$ \text{cache size} = n_{\text{lines}} \times s_{\text{block}} $$
+$$ n_{\text{lines}} = n_{\text{sets}} \times n_{\text{blocks per set}} = 2^{11} \times 2^3 $$
+$$ n_{\text{lines}} = 2^{14} $$
+$$ \text{cache size} = 2^{14} \times 2^4 $$
+$$ \text{cache size} = \SI{256}{\kibi\byte} $$
+
+\item The given tag value of 3D gives tag bits 0 0000 0000 0011 1101. Lines 0-7 map to set 0, lines 8-15 map to set 1, so line 16 maps to set 2. So, the set bits for a cache hit will be 000 0000 0010. Finally, the second word would require offset bits 0001. So the final address resulting in a cache hit is 0000 0000 0001 1110 1000 0000 0010 0001, or 0x001E8021.
+\end{enumerate}
+
+\item The effective access time of the memory hierarchy is:
+$$ EA = 0.85(\SI{2}{\nano\second}) + 0.15(0.94(\SI{2}{\nano\second} + \SI{60}{\nano\second}) + 0.06(\SI{2}{\nano\second} + \SI{60}{\nano\second} + \SI{12}{\milli\second})) $$
+$$ EA = \SI{0.108}{\milli\second} $$
+
+\end{enumerate}
+\end{document}
