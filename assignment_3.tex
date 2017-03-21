@@ -1,0 +1,109 @@
+\documentclass{article}
+
+\usepackage{afterpage}
+\usepackage{pdflscape}
+\usepackage{longtable}
+
+\usepackage[margin=2.5cm]{geometry}
+
+\usepackage[scientific-notation=true, binary-units=true]{siunitx}
+\sisetup{per-mode=fraction}%
+\sisetup{scientific-notation=false}%
+
+\title{SYSC 4507 Assignment 2}
+\date{February 13th, 2017}
+\author{Jessica Morris \(100882290\)}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+
+\item If the item is at array[3], then the while loop will execute 2 times. First execution has R6 = 0 and R5 = 17 and checks index 8, the second execution has R6 = 0 and R5 = 7 and checks index 3.
+
+The total number of instructions executed is: $ 5 + 10 + 10 = 25 $
+
+\item To execute this program, it would take:
+
+$$ n_{clocks} = 5 \text{ CPI} \times n_{LDR} + 4 \text{ CPI} \times n_{other} $$
+$$ n_{clocks} = 5 \text{ CPI} \times 2 \text{ instructions} + 4 \text{ CPI} \times 23 \text{ instructions} $$
+$$ n_{clocks} = 102 \text{ clocks} $$
+
+\item The program takes 56 clock cycles when using a 5-stage pipeline. See space-time diagrams on the next few pages.
+
+\item A one-slot delayed-branch will only save one clock cycle. With the first BLT all\_done, before the start of the while loop, the MOV R8, \#-1 could be executed in the delay. However, the remaining branches could not be refactored to take advantage of the one-slot delay, as the other instructions all depend on each other.
+
+\end{enumerate}
+
+\afterpage{%
+    \clearpage% Flush earlier floats (otherwise order might not be correct)
+    \thispagestyle{empty}% empty page style (?)
+    \begin{landscape}% Landscape page
+        \centering % Center table
+        \begin{longtable}{|c|c|c|c|c|c|c|}
+            \hline
+            Cycle & IF & ID & EX & MEM & WB & Notes \\
+            \hline
+            1 & MOV R8,\#-1 & & & & & \\ \hline
+            2 & CMP R5,0 & MOV R8,\#-1 & & & & \\ \hline
+            3 & nop & CMP R5,0 & MOV R8,\#-1 & & & \\ \hline
+            4 & nop & nop & CMP R5,0 & MOV R8,\#-1 & & \\ \hline
+            5 & BLT all\_done & nop & nop & CMP R5,0 & MOV R8,\#-1 & \\ \hline
+            6 & MOV R6,\#0 & BLT all\_done & nop & nop & CMP R5,0 & \\ \hline
+            7 & SUB R5,R5,\#1 & MOV R6,\#0 & BLT all\_done & nop & nop & Branch not taken \\ \hline
+            8 & nop & SUB R5,R5,\#1 & MOV R6,\#0 & BLT all\_done & nop & \\ \hline
+            9 & nop & nop & SUB R5,R5,\#1 & MOV R6,\#0 & BLT all\_done & \\ \hline
+            10 & CMP R5,R6 & nop & nop & SUB R5,R5,\#1 & MOV R6,\#0 & \\ \hline
+            11 & nop & CMP R5,R6 & nop & nop & SUB R5,R5,\#1 & \\ \hline
+            12 & nop & nop & CMP R5,R6 & nop & nop & \\ \hline
+            13 & BLT all\_done & nop & nop & CMP R5,R6 & nop & \\ \hline
+            14 & ADD R7,R6,R5 & BLT all\_done & nop & nop & CMP R5,R6 & \\ \hline
+            15 & nop & ADD R7,R6,R5 & BLT all\_done & nop & nop & Branch not taken \\ \hline
+            16 & nop & nop & ADD R7,R6,R5 & BLT all\_done & nop & \\ \hline
+            17 & LSR R7,R7,\#1 & nop & nop & ADD R7,R6,R5 & BLT all\_done & \\ \hline
+            18 & nop & LSR R7,R7,\#1 & nop & nop & ADD R7,R6,R5 & \\ \hline
+            19 & nop & nop & LSR R7,R7,\#1 & nop & nop & \\ \hline
+            20 & LDR R9,[R4,R7] & nop & nop & LSR R7,R7,\#1 & nop & \\ \hline
+            21 & nop & LDR R9,[R4,R7] & nop & nop & LSR R7,R7,\#1 & \\ \hline
+            22 & nop & nop & LDR R9,[R4,R7] & nop & nop & \\ \hline
+            23 & CMP R9,R3 & nop & nop & LDR R9,[R4,R7] & nop & \\ \hline
+            24 & nop & CMP R9,R3 & nop & nop & LDR R9,[R4,R7] & \\ \hline
+            25 & nop & nop & CMP R9,R3 & nop & nop & \\ \hline
+            26 & BLT adjust\_min & nop & nop & CMP R9,R3 & nop & \\ \hline
+            27 & BGT adjust\_max & BLT adjust\_min & nop & nop & CMP R9,R3 & \\ \hline
+            28 & MOV R8,R7 & BGT adjust\_max & BLT adjust\_min & nop & nop & Branch not taken \\ \hline
+            29 & B all\_done & MOV R8,R7 & BGT adjust\_max & BLT adjust\_min & nop & Branch taken \\ \hline
+            30 & SUB R5,R7,\#1 & nop & nop & BGT adjust\_max & BLT adjust\_min & \\ \hline
+            31 & B test\_while & SUB R5,R7,\#1 & nop & nop & BGT adjust\_max & \\ \hline
+            32 & nop & B test\_while & SUB R5,R7,\#1 & nop & nop & Branch early \\ \hline
+            33 & CMP R5,R6 & nop & B test\_while & SUB R5,R7,\#1 & nop & \\ \hline
+            34 & nop & CMP R5,R6 & nop & B test\_while & SUB R5,R7,\#1 & \\ \hline
+            35 & nop & nop & CMP R5,R6 & nop & B test\_while & \\ \hline
+            36 & BLT all\_done & nop & nop & CMP R5,R6 & B test\_while & \\ \hline
+            37 & ADD R7,R6,R5 & BLT all\_done & nop & nop & CMP R5,R6 & \\ \hline
+            38 & nop & ADD R7,R6,R5 & BLT all\_done & nop & nop & Branch not taken \\ \hline
+            39 & nop & nop & ADD R7,R6,R5 & BLT all\_done & nop & \\ \hline
+            40 & LSR R7,R7,\#1 & nop & nop & ADD R7,R6,R5 & BLT all\_done & \\ \hline
+            41 & nop & LSR R7,R7,\#1 & nop & nop & ADD R7,R6,R5 & \\ \hline
+            42 & nop & nop & LSR R7,R7,\#1 & nop & nop & \\ \hline
+            43 & LDR R9,[R4,R7] & nop & nop & LSR R7,R7,\#1 & nop & \\ \hline
+            44 & nop & LDR R9,[R4,R7] & nop & nop & LSR R7,R7,\#1 & \\ \hline
+            45 & nop & nop & LDR R9,[R4,R7] & nop & nop & \\ \hline
+            46 & CMP R9,R3 & nop & nop & LDR R9,[R4,R7] & nop & \\ \hline
+            47 & nop & CMP R9,R3 & nop & nop & LDR R9,[R4,R7] & \\ \hline
+            48 & nop & nop & CMP R9,R3 & nop & nop & \\ \hline
+            49 & BLT adjust\_min & nop & nop & CMP R9,R3 & nop & \\ \hline
+            50 & BGT adjust\_max & BLT adjust\_min & nop & nop & CMP R9,R3 & \\ \hline
+            51 & MOV R8,R7 & BGT adjust\_max & BLT adjust\_min & nop & nop & Branch not taken \\ \hline
+            52 & B all\_done & MOV R8,R7 & BGT adjust\_max & BLT adjust\_min & nop & Branch not taken \\ \hline
+            53 & nop & B all\_done & MOV R8,R7 & BGT adjust\_max & BLT adjust\_min & \\ \hline
+            54 & & nop & B all\_done & MOV R8,R7 & BGT adjust\_max & Branch early \\ \hline
+            55 & & & nop & B all\_done & MOV R8,R7 & \\ \hline
+            56 & & & & nop & B all\_done & Done \\ \hline
+        \end{longtable}
+    \end{landscape}
+    \clearpage% Flush page
+}
+
+\end{document}
