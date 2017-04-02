@@ -1,0 +1,437 @@
+\documentclass{article}
+
+\usepackage[margin=2cm]{geometry}
+
+\usepackage[scientific-notation=true, binary-units=true]{siunitx}
+\sisetup{per-mode=fraction}%
+\sisetup{scientific-notation=false}%
+
+\usepackage{afterpage}
+\usepackage{pdflscape}
+
+\usepackage{longtable}
+\usepackage[table]{xcolor}
+\usepackage{arydshln}
+
+\title{SYSC 4507 Assignment 4}
+\date{April 4th, 2017}
+\author{Jessica Morris \(100882290\)}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+
+\item The program takes 50 cycles to fully execute. See execution tables on the pages after this one. (Assumptions made: If a branch's IP change is in the range of instructions that are loaded into dispatch, then the next instruction is pushed to the front of the dispatch queue; branches are not evaluated until the writeback stage)
+
+\item
+\begin{enumerate}
+\item 0 execution units are busy for 26 cycles out of 50.
+\item 1 MEM units are busy for 4 cycles out of 50.
+\item 1 ALU units are busy for 17 cycles out of 50.
+\item 2 ALU units are busy for 3 cycles out of 50.
+\item As concluded in the previous assignment, this binary search program does not lend itself easily to parallelization. Since this program's branches are not predicted intelligently, and about half of the instructions depend on the results from previous instructions, the processor must frequently stall to execute instructions in single file. I would expect most searching and sorting algorithms, which rely heavily on branches, would have roughly the same performance (i.e. 50\% of clock cycles have no busy execution units). Programs that lend themselves better to parallelization, such as an encryption cracker, should perform better. 
+\end{enumerate}
+
+\item Q3
+
+\end{enumerate}
+
+\afterpage{%
+    \clearpage% Flush earlier floats (otherwise order might not be correct)
+    \thispagestyle{empty}% empty page style (?)
+    \begin{landscape}% Landscape page
+
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    1 & MOV R8,\#-1 & & & & & & 0 exec units busy \\ \hline
+     & CMP R5,0 & & & & & & \\ \hline
+     & BLT all\_done & & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    2 & MOV 6,\#0 & MOV R8,\#-1 & & & & & 0 exec units busy \\ \hline
+     & SUB R5,R5,\#1 & CMP R5,0 & & & & & \\ \hline
+     & CMP R5,R6 & BLT all\_done & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    3 & BLT all\_done & MOV 6,\#0 & MOV R8,\#-1 & & & & 0 exec units busy \\ \hline
+     & ADD R7,R6,R5 & SUB R5,R5,\#1 & CMP R5,0 & & & & \\ \hline
+     & LSR R7,R7,\#1 & CMP R5,R6 & BLT all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    4 & LDR R9,[R4,R7] & BLT all\_done & BLT all\_done & & & & 2 ALU units busy \\ \hline
+     & CMP R9,R3 & ADD R7,R6,R5 & MOV R6,\#0 & & & & \\ \hline
+     & BLT adjust\_min & LSR R7,R7,\#1 & SUB R5,R5,\#1 & MOV R8,\#-1 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R5,R6 & CMP R5,0 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    5 & BLT adjust\_min & LSR R7,R7,\#1 & BLT all\_done & x & & MOV R8,\#-1 & 0 exec units busy \\ \hline
+     & BGT adjust\_max & LDR R9,[R4,R7] & MOV R6,\#0 & & & CMP R5,0 & \\ \hline
+     & MOV R8,R7 & CMP R9,R3 & SUB R5,R5,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R5,R6 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R7,R6,R5 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    6 & BGT adjust\_max & LDR R9,[R4,R7] & MOV R6,\#0 & & & & 1 ALU unit busy \\ \hline
+     & MOV R8,R7 & CMP R9,R3 & SUB R5,R5,\#1 & & & & \\ \hline
+     & B all\_done & BLT adjust\_min & CMP R5,R6 & BLT all\_done & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R7,R6,R5 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LSR R7,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+     
+    7 & BGT adjust\_max & LDR R9,[R4,R7] & MOV R6,\#0 & x & & BLT all\_done & Branch not taken \\ \hline
+     & MOV R8,R7 & CMP R9,R3 & SUB R5,R5,\#1 & & & & 0 exec units busy \\ \hline
+     & B all\_done & BLT adjust\_min & CMP R5,R6 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R7,R6,R5 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LSR R7,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    8 & B all\_done & BLT adjust\_min & CMP R5,R6 & & & & 2 ALU units busy \\ \hline
+     & ADD R6,R7,\#1 & BGT adjust\_max & BLT all\_done & & & & \\ \hline
+     & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & MOV R6,\#0 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LSR R7,R7,\#1 & SUB R5,R5,\#1 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LDR R9,[R4,R7] & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    9 & ADD R6,R7,\#1 & BGT adjust\_max & BLT all\_done & & & MOV R6,\#0 & 1 ALU unit busy \\ \hline
+     & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & & & SUB R5,R5,\#1 & \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & CMP R5,R6 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    10 & ADD R6,R7,\#1 & BGT adjust\_max & BLT all\_done & x & & CMP R5,R6 & 0 exec units busy \\ \hline
+     & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & & & & \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    11 & B test\_while & MOV R8,R7 &ADD R7,R6,R5 & & & & 1 ALU unit busy \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & BLT all\_done & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    12 & B test\_while & MOV R8,R7 &ADD R7,R6,R5 & & & BLT all\_done & Branch not taken \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & 0 exec units busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+     
+    13 & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & 1 ALU unit busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & \\ \hline
+     & all\_done & B test\_while & CMP R9,R3 & ADD R7,R6,R5 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    14 & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & ADD R7,R6,R5 & 0 exec units busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & \\ \hline
+     & all\_done & B test\_while & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    15 & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & 1 ALU unit busy \\ \hline
+     & & B test\_while & CMP R9,R3 & & & & \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & LSR R7,R7,\#1 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    16 & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & LSR R7,R7,\#1 & 0 exec units busy \\ \hline
+     & & B test\_while & CMP R9,R3 & & & & \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    17 & & B test\_while & CMP R9,R3 & LDR R9,[R4,R7] & & & 1 MEM unit busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    18 & & B test\_while & CMP R9,R3 & & LDR R9,[R4,R7] & & 1 MEM unit busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    19 & & B test\_while & CMP R9,R3 & & & LDR R9,[R4,R7] & 0 exec units busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    20 & & SUB R5,R7,\#1 & BLT adjust\_min & & & & 1 ALU units busy \\ \hline
+     & & B test\_while & BGT adjust\_max & & & & \\ \hline
+     & & & MOV R8,R7 & CMP R9,R3 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    21 & & SUB R5,R7,\#1 & BLT adjust\_min & & & CMP R9,R3 & 0 exec units busy \\ \hline
+     & & B test\_while & BGT adjust\_max & & & & \\ \hline
+     & & & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    22 & & B test\_while & BGT adjust\_max & & & & 1 ALU units busy \\ \hline
+     & & & MOV R8,R7 & & & & \\ \hline
+     & & &  B all\_done & BLT adjust\_min & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+
+    23 & & B test\_while & BGT adjust\_max & & & BLT adjust\_min & Branch not taken \\ \hline
+     & & & MOV R8,R7 & & & & 0 exec units busy \\ \hline
+     & & &  B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+
+    24 & & & MOV R8,R7 & & & & 1 ALU unit busy \\ \hline
+     & & & B all\_done & & & & \\ \hline
+     & & & ADD R6,R7,\#1 & BGT adjust\_max & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    25 & & & MOV R8,R7 & & & BGT adjust\_max & Branch taken \\ \hline
+     & & & B all\_done & & & & 0 exec units busy \\ \hline
+     & & & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & Branch is in dispatch range \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    26 & & & B test\_while & & & & 1 ALU units busy \\ \hline
+     & & & & & & & \\ \hline
+     & & & & SUB R5,R7,\#1 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    27 & & & & & & SUB R5,R7,\#1 & 1 ALU units busy \\ \hline
+     & & & & & & & \\ \hline
+     & & & & B test\_while & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    28 & & & & & & B test\_while & 0 exec units busy \\ \hline
+     & & & & & & & IP rewritten here \\ \hline
+     & & & & & \cellcolor{gray!25} & & New instructions fetched \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    29 & CMP R5,R6 & & & & & & 0 exec units busy \\ \hline
+     & BLT all\_done & & & & & & \\ \hline
+     & ADD R7,R6,R5 & & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    30 & LSR R7,R7,\#1 & CMP R5,R6 & & & & & 0 exec units busy \\ \hline
+     & LDR R9,[R4,R7] & BLT all\_done & & & & & \\ \hline
+     & CMP R9,R3 & ADD R7,R6,R5 & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    31 & BLT adjust\_min & LSR R7,R7,\#1 & CMP R5,R6 & & & & 0 exec units busy \\ \hline
+     & BGT adjust\_max & LDR R9,[R4,R7] & BLT all\_done & & & & \\ \hline
+     & MOV R8,R7 & CMP R9,R3 & ADD R7,R6,R5 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+    32 & B all\_done & BLT adjust\_min & BLT all\_done & & & & 1 ALU units busy \\ \hline
+     & ADD R6,R7,\#1 & BGT adjust\_max & ADD R7,R6,R5 & & & & \\ \hline
+     & B test\_while & MOV R8,R7 & LSR R7,R7,\#1 & CMP R5,R6 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    33 & ADD R6,R7,\#1 & BGT adjust\_max & BLT all\_done & & & CMP R5,R6 & 0 exec units busy \\ \hline
+     & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & & & & \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    34 & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & & & & 1 ALU unit busy \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & BLT all\_done & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    35 & B test\_while & MOV R8,R7 & ADD R7,R6,R5 & & & BLT all\_done & Branch not taken \\ \hline
+     & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & 0 exec units busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    36 & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & & 1 ALU unit busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & \\ \hline
+     & & B test\_while & CMP R9,R3 & ADD R7,R6,R5 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    37 & SUB R5,R7,\#1 & B all\_done & LSR R7,R7,\#1 & & & ADD R7,R6,R5 & 0 exec units busy \\ \hline
+     & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & \\ \hline
+     & & B test\_while & CMP R9,R3 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    38 & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & & 1 ALU unit busy \\ \hline
+     & & B test\_while & CMP R9,R3 & & & & \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & LSR R7,R7,\#1 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    39 & B test\_while & ADD R6,R7,\#1 & LDR R9,[R4,R7] & & & LSR R7,R7,\#1 & 0 exec units busy \\ \hline
+     & & B test\_while & CMP R9,R3 & & & & \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    40 & & B test\_while & CMP R9,R3 & LDR R9,[R4,R7] & & & 1 MEM unit busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    41 & & B test\_while & CMP R9,R3 & & LDR R9,[R4,R7] & & 1 MEM unit busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    42 & & B test\_while & CMP R9,R3 & & & LDR R9,[R4,R7] & 0 exec units busy \\ \hline
+     & & SUB R5,R7,\#1 & BLT adjust\_min & & & & \\ \hline
+     & & B test\_while & BGT adjust\_max & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    43 & & SUB R5,R7,\#1 & BLT adjust\_min & & & & 1 ALU unit busy \\ \hline
+     & & B test\_while & BGT adjust\_max & & & & \\ \hline
+     & & & MOV R8,R7 & CMP R9,R3 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    44 & & SUB R5,R7,\#1 & BLT adjust\_min & & & CMP R9,R3 & 0 exec units busy \\ \hline
+     & & B test\_while & BGT adjust\_max & & & & \\ \hline
+     & & & MOV R8,R7 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    45 & & B test\_while & BGT adjust\_max & & & & 1 ALU unit busy \\ \hline
+     & & & MOV R8,R7 & & & & \\ \hline
+     & & & B all\_done & BLT adjust\_min & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    46 & & B test\_while & BGT adjust\_max & & & BLT adjust\_min & Branch not taken \\ \hline
+     & & & MOV R8,R7 & & & & 0 exec units busy \\ \hline
+     & & & B all\_done & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    47 & & & MOV R8,R7 & & & & 1 ALU unit busy \\ \hline
+     & & & B all\_done & & & & \\ \hline
+     & & & ADD R6,R7,\#1 & BGT adjust\_max & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    48 & & & MOV R8,R7 & & & BGT adjust\_max & Branch not taken \\ \hline
+     & & & B all\_done & & & & 0 exec units busy \\ \hline
+     & & & ADD R6,R7,\#1 & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & SUB R5,R7,\#1 & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+\end{longtable}
+\begin{longtable}{|c|c|c|c|c:c|c|c|}\hline
+    Cycle & FI & DEC & DIS & \multicolumn{2}{c|}{EX} & WB & Notes\\ \hline
+    
+    49 & & & ADD R6,R7,\#1 & & & & 2 ALU units busy \\ \hline
+     & & & B test\_while & & & & \\ \hline
+     & & & SUB R5,R7,\#1 & MOV R8,R7 & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & B all\_done & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+     
+    50 & & & ADD R6,R7,\#1 & & & MOV R8,R7 & Branch taken \\ \hline
+     & & & B test\_while & & & B all\_done & 0 exec units busy \\ \hline
+     & & & SUB R5,R7,\#1 & & \cellcolor{gray!25} & & Program done \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & B test\_while & & \cellcolor{gray!25} & & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline
+     & \cellcolor{gray!25} & \cellcolor{gray!25} & & \cellcolor{gray!25} & \cellcolor{gray!25} & \cellcolor{gray!25} & \\ \hline \hline
+    
+\end{longtable}
+
+    \end{landscape}
+    \clearpage% Flush page
+}
+
+\end{document}
